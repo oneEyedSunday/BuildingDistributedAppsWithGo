@@ -7,18 +7,24 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"pluralsight-go-building-distributed-apps/registry"
 	"syscall"
 )
 
-func Start(ctx context.Context, serviceName, host, port string, registerHandleFn func()) (context.Context, error) {
+func Start(ctx context.Context, host, port string, reg registry.Registration, registerHandleFn func()) (context.Context, error) {
 
 	registerHandleFn()
-	ctx = start(ctx, serviceName, host, port)
+	ctx = start(ctx, reg.ServiceName, host, port)
+
+	// register service
+	if err := registry.RegisterService(reg); err != nil {
+		return ctx, err
+	}
 
 	return ctx, nil
 }
 
-func start(ctx context.Context, serviceName, host, port string) context.Context {
+func start(ctx context.Context, serviceName registry.ServiceName, host, port string) context.Context {
 	ctx, cancel := context.WithCancel(ctx)
 
 	sig := make(chan os.Signal, 1)

@@ -12,7 +12,8 @@ const ServicesURL = "http://localhost" + ServerPort + "/services"
 
 type registry struct {
 	registrations []Registration
-	mu            *sync.Mutex
+	// mu is not declared as a pointer here because i find it more readable
+	mu sync.Mutex
 }
 
 func (r *registry) add(reg Registration) error {
