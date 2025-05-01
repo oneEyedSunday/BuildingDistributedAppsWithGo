@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func Start(ctx context.Context, serviceName, host, port string, registerHandleFn func()) (context.Context, error) {
@@ -17,6 +20,10 @@ func Start(ctx context.Context, serviceName, host, port string, registerHandleFn
 
 func start(ctx context.Context, serviceName, host, port string) context.Context {
 	ctx, cancel := context.WithCancel(ctx)
+
+	sig := make(chan os.Signal, 1)
+
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	var svc http.Server
 	svc.Addr = ":" + port
 
@@ -39,6 +46,13 @@ func start(ctx context.Context, serviceName, host, port string) context.Context 
 		svc.Shutdown(ctx)
 		cancel()
 
+	}()
+
+	go func() {
+		<-sig
+
+		svc.Shutdown(ctx)
+		cancel()
 	}()
 
 	return ctx
