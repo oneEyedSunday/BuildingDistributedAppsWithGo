@@ -26,27 +26,18 @@ func main() {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 
 	var srv http.Server
-	srv.Addr = registry.ServerPort
+	srv.Addr = fmt.Sprint(":", registry.ServerPort)
 
 	// 1) goroutine to start the server
 	go func() {
+		fmt.Printf("Registry service started on http://%s. Press an key to stop. \n", srv.Addr)
 		log.Println(srv.ListenAndServe())
 
 		// if ListenAndServe() returns, it means that an error has occurred, so we need to cancel the context.
 		cancel()
 	}()
 
-	// 2) goroutine to give us a cancellation option
-	go func() {
-		fmt.Printf("Registry service started on http://%s. Press an key to stop. \n", srv.Addr)
-		var s string
-		fmt.Scanln(&s)
-
-		srv.Shutdown(ctx)
-		cancel()
-	}()
-
-	// 3 watch for signal cancellation from os (SIGINT, SIGTERM etc)
+	// 2) watch for signal cancellation from os (SIGINT, SIGTERM etc)
 	go func() {
 		<-sig
 

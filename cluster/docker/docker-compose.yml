@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  logservice:
+    build:
+        # dockerfile: ./Dockerfile
+        context: ../..
+    depends_on:
+      - registryservice
+    command: ./log_bin
+    # profiles:
+    #   - all
+    environment:
+      - LOG_SERVICE_PORT=4000
+      - REGISTRY_SERVICE_HOST=registryservice
+    volumes:
+      - ../../dist/app.log:/app/app.log
+    ports:
+      - "4000" 
+  registryservice:
+    build:
+        # dockerfile: ./Dockerfile
+        context: ../..
+    command: ./registry_bin
+    restart: always
+    # profiles:
+    #   - all
+    ports:
+      - "3000" 
+    environment:
+      REGISTRY_SERVICE_PORT: 3000
+      REGISTRY_SERVICE_HOST: registryservice
+
+    

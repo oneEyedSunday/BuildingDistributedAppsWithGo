@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	stLog "log"
 )
 
 func RegisterService(r Registration) error {
@@ -14,6 +16,7 @@ func RegisterService(r Registration) error {
 		return err
 	}
 
+	stLog.Printf("attempting to register on servicesUrl %s", ServicesURL)
 	res, err := http.Post(ServicesURL, "application/json", buf)
 	if err != nil {
 		return err

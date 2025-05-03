@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"pluralsight-go-building-distributed-apps/log"
+	"pluralsight-go-building-distributed-apps/pkg/util"
 	"pluralsight-go-building-distributed-apps/registry"
 	"pluralsight-go-building-distributed-apps/service"
 
@@ -11,10 +13,10 @@ import (
 )
 
 func main() {
-	log.Run("../dist/app.log")
+	log.Run("app.log")
 
-	// TODO from config
-	host, port := "localhost", "4000"
+	port := util.StringOr(os.Getenv("LOG_SERVICE_PORT"), "4000")
+	host := "localhost"
 
 	ctx, err := service.Start(context.Background(), host, port, registry.Registration{
 		ServiceName: registry.LogService,

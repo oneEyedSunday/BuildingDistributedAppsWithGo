@@ -43,18 +43,7 @@ func start(ctx context.Context, serviceName registry.ServiceName, host, port str
 	}()
 
 	go func() {
-
 		fmt.Printf("%v started on http://%s:%s. Press an key to stop. \n", serviceName, host, port)
-		var s string
-		fmt.Scanln(&s)
-
-		// shutdown server on key input???
-		svc.Shutdown(ctx)
-		cancel()
-
-	}()
-
-	go func() {
 		<-sig
 
 		svc.Shutdown(ctx)

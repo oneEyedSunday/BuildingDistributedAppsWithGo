@@ -2,13 +2,24 @@ package registry
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"pluralsight-go-building-distributed-apps/pkg/util"
 	"sync"
 )
 
-const ServerPort = ":3000"
-const ServicesURL = "http://localhost" + ServerPort + "/services"
+var ServerPort string
+var ServicesURL string
+
+func init() {
+
+	ServerPort = util.StringOr(os.Getenv("REGISTRY_SERVICE_PORT"), "3000")
+	serviceHost := util.StringOr(os.Getenv("REGISTRY_SERVICE_HOST"), "localhost")
+
+	ServicesURL = fmt.Sprintf("http://%s:%s/services", serviceHost, ServerPort)
+}
 
 type registry struct {
 	registrations []Registration
