@@ -16,6 +16,20 @@ services:
       - ../../dist/app.log:/app/app.log
     ports:
       - "4000" 
+  gradingservice:
+    build:
+        # dockerfile: ./Dockerfile
+        context: ../..
+    depends_on:
+      - registryservice
+    command: ./grading_bin
+    # profiles:
+    #   - all
+    environment:
+      - GRADING_SERVICE_PORT=6000 # so we have unique urls for the service registry
+      - REGISTRY_SERVICE_HOST=registryservice
+    ports:
+      - "4000" 
   registryservice:
     build:
         # dockerfile: ./Dockerfile

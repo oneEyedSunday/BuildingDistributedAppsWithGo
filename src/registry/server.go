@@ -38,6 +38,10 @@ func (r *registry) add(reg Registration) error {
 }
 
 func (r *registry) remove(url string) error {
+	// NOTE: bug here, this assumes the urls are unique (which indeed is likely the case in a non dockerized environment)
+	// but with containers we can seemingly use the same ports on different containers
+	// we should have an ID also, like in otoole's hraftd demo
+	// so ID + url
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	for i := range r.registrations {
