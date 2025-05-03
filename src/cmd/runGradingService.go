@@ -14,15 +14,26 @@ import (
 
 func main() {
 	port := util.StringOr(os.Getenv("GRADING_SERVICE_PORT"), "6000")
-	host := "localhost"
+	host := util.StringOr(os.Getenv("SERVICE_HOSTNAME"), "localhost")
 
-	ctx, err := service.Start(context.Background(), host, port, registry.Registration{
-		ServiceName: registry.GradingService,
-		ServiceURL:  fmt.Sprintf("http://%s:%s", host, port),
-	}, log.RegisterHandlers)
+	serviceAddress := fmt.Sprintf("http://%s:%s", host, port)
+
+	registration := registry.Registration{
+		ServiceName:      registry.GradingService,
+		ServiceURL:       serviceAddress,
+		RequiredServices: []registry.ServiceName{registry.LogService},
+		ServiceUpdateURL: fmt.Sprintf("%s/services", serviceAddress),
+	}
+
+	ctx, err := service.Start(context.Background(), host, port, registration, log.RegisterHandlers)
 
 	if err != nil {
 		stLog.Fatal(err)
+	}
+
+	if logProvider, err := registry.GetProvider(registry.LogService); err == nil {
+		fmt.Printf("logging service found at: %v\n", logProvider)
+		log.SetClientLogger(logProvider, registration.ServiceName)
 	}
 
 	<-ctx.Done()

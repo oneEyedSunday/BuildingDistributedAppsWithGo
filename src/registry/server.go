@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,14 +26,58 @@ func init() {
 type registry struct {
 	registrations []Registration
 	// mu is not declared as a pointer here because i find it more readable
-	mu sync.Mutex
+	mu sync.RWMutex
 }
 
 func (r *registry) add(reg Registration) error {
 	r.mu.Lock()
-	defer r.mu.Unlock()
-
 	r.registrations = append(r.registrations, reg)
+	r.mu.Unlock()
+
+	err := r.sendRequiredServices(reg)
+
+	return err
+}
+
+func (r *registry) sendRequiredServices(reg Registration) error {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	var p patch
+
+	for _, serviceReg := range r.registrations {
+		for _, reqService := range reg.RequiredServices {
+			if serviceReg.ServiceName == reqService {
+				p.Added = append(p.Added, patchEntry{
+					Name: serviceReg.ServiceName,
+					URL:  serviceReg.ServiceURL,
+				})
+			}
+		}
+	}
+
+	if err := r.sendPatch(p, reg.ServiceUpdateURL); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *registry) sendPatch(p patch, url string) error {
+	if url == "" {
+		log.Println("service doesnt have a serviceUpdateURL, ignoring patch", p)
+		return nil
+	}
+	d, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+
+	// we dont care about response here (for now)
+	_, err = http.Post(url, "application/json", bytes.NewBuffer(d))
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -73,7 +118,7 @@ func (s RegistryService) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		log.Printf("Adding service: %v with URL: %s\n", registration.ServiceName, registration.ServiceURL)
+		log.Printf("Adding service: %v to registry with URL: %s %v\n", registration.ServiceName, registration.ServiceURL, registration)
 		if err := reg.add(registration); err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)

@@ -16,11 +16,16 @@ func main() {
 	log.Run("app.log")
 
 	port := util.StringOr(os.Getenv("LOG_SERVICE_PORT"), "4000")
-	host := "localhost"
+	host := util.StringOr(os.Getenv("SERVICE_HOSTNAME"), "localhost")
 
 	ctx, err := service.Start(context.Background(), host, port, registry.Registration{
-		ServiceName: registry.LogService,
-		ServiceURL:  fmt.Sprintf("http://%s:%s", host, port),
+		ServiceName:      registry.LogService,
+		ServiceURL:       fmt.Sprintf("http://%s:%s", host, port),
+		RequiredServices: make([]registry.ServiceName, 0),
+		// do i need one??
+		// yes i do, all registrations need this
+		// making a patch to skip if not provided
+		// ServiceUpdateURL: "",
 	}, log.RegisterHandlers)
 
 	if err != nil {
