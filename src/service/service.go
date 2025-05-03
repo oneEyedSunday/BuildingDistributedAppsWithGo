@@ -14,7 +14,7 @@ import (
 func Start(ctx context.Context, host, port string, reg registry.Registration, registerHandleFn func()) (context.Context, error) {
 
 	registerHandleFn()
-	ctx = start(ctx, reg.ServiceName, host, port)
+	ctx = start(ctx, reg, host, port)
 
 	// register service
 	if err := registry.RegisterService(reg); err != nil {
@@ -24,7 +24,7 @@ func Start(ctx context.Context, host, port string, reg registry.Registration, re
 	return ctx, nil
 }
 
-func start(ctx context.Context, serviceName registry.ServiceName, host, port string) context.Context {
+func start(ctx context.Context, reg registry.Registration, host, port string) context.Context {
 	ctx, cancel := context.WithCancel(ctx)
 
 	sig := make(chan os.Signal, 1)
@@ -43,9 +43,12 @@ func start(ctx context.Context, serviceName registry.ServiceName, host, port str
 	}()
 
 	go func() {
-		fmt.Printf("%v started on http://%s:%s. Press an key to stop. \n", serviceName, host, port)
+		fmt.Printf("%v started on http://%s:%s. Press an key to stop. \n", reg.ServiceName, host, port)
 		<-sig
 
+		if err := registry.ShutdownService(reg.ServiceURL); err != nil {
+			log.Println(err)
+		}
 		svc.Shutdown(ctx)
 		cancel()
 	}()
