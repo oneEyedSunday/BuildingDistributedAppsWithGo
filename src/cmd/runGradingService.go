@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"pluralsight-go-building-distributed-apps/grades"
 	"pluralsight-go-building-distributed-apps/log"
 	"pluralsight-go-building-distributed-apps/pkg/util"
 	"pluralsight-go-building-distributed-apps/registry"
@@ -25,7 +26,7 @@ func main() {
 		ServiceUpdateURL: fmt.Sprintf("%s/services", serviceAddress),
 	}
 
-	ctx, err := service.Start(context.Background(), host, port, registration, log.RegisterHandlers)
+	ctx, err := service.Start(context.Background(), host, port, registration, grades.RegisterHandlers)
 
 	if err != nil {
 		stLog.Fatal(err)

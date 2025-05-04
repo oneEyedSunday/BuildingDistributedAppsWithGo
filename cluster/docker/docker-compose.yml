@@ -32,7 +32,7 @@ services:
       - REGISTRY_SERVICE_HOST=registryservice
       - SERVICE_HOSTNAME=gradingservice
     ports:
-      - "4000" 
+      - "6000" 
   registryservice:
     build:
         # dockerfile: ./Dockerfile
