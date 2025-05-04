@@ -3,9 +3,9 @@ package registry
 type Registration struct {
 	ServiceName ServiceName
 	ServiceURL  string
-	// RequiredServices are services needed. Service A needs services [B, C]
+	// RequiredServices are services a registration needs. For example while registering Service A, we could mark it as needing services [B, C]
 	RequiredServices []ServiceName
-	// ServiceUpdateURL is a URL the registry can communicate back to the requesting service on
+	// ServiceUpdateURL is the URL the registry can communicate back to the requesting service on (to handle patchEntries for example).
 	ServiceUpdateURL string
 }
 
@@ -24,4 +24,8 @@ type patchEntry struct {
 type patch struct {
 	Added   []patchEntry
 	Removed []patchEntry
+}
+
+func (p patch) IsEmpty() bool {
+	return len(p.Added) == 0 && len(p.Removed) == 0
 }

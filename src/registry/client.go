@@ -21,6 +21,7 @@ func RegisterService(r Registration) error {
 			return err
 		}
 
+		stLog.Printf("handling service updates for %s on %s\n", r.ServiceName, serviceUpdateURL.Path)
 		http.Handle(serviceUpdateURL.Path, &serviceUpdateHandler{})
 	}
 
@@ -60,6 +61,7 @@ func (s *serviceUpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// TODO confirm this actually registers for say running multiple instances of a service
 	prov.Update(p)
 }
 
@@ -90,6 +92,7 @@ func (p *providers) Update(pat patch) {
 			p.services[patchEntry.Name] = make([]string, 0)
 		}
 
+		// This should ideally be a set (for uniqueness)
 		p.services[patchEntry.Name] = append(p.services[patchEntry.Name], patchEntry.URL)
 	}
 

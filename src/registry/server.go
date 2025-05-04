@@ -45,6 +45,8 @@ func (r *registry) sendRequiredServices(reg Registration) error {
 
 	var p patch
 
+	// TODO refactor this loop
+	// If we loop first across all needed services, we can have a shorter loop
 	for _, serviceReg := range r.registrations {
 		for _, reqService := range reg.RequiredServices {
 			if serviceReg.ServiceName == reqService {
@@ -68,6 +70,12 @@ func (r *registry) sendPatch(p patch, url string) error {
 		log.Println("service doesnt have a serviceUpdateURL, ignoring patch", p)
 		return nil
 	}
+
+	if p.IsEmpty() {
+		log.Println("empty patch, skipping")
+		return nil
+	}
+
 	d, err := json.Marshal(p)
 	if err != nil {
 		return err

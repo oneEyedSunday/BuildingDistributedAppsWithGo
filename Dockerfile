@@ -20,4 +20,5 @@ EXPOSE 3000
 EXPOSE 4000
 EXPOSE 6000
 
-CMD ["echo", "specify a service; options are registry_bin, log_bin"]
+# TODO make this a dynamic listing
+CMD ["echo", "specify a service; options are registry_bin, log_bin, grading_bin"]
