@@ -35,8 +35,50 @@ func (r *registry) add(reg Registration) error {
 	r.mu.Unlock()
 
 	err := r.sendRequiredServices(reg)
+	r.notify(patch{
+		Added:   []patchEntry{{Name: reg.ServiceName, URL: reg.ServiceURL}},
+		Removed: []patchEntry{},
+	})
 
 	return err
+}
+
+// notify serves as a general purpose notification method
+func (r *registry) notify(pat patch) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	for _, reg := range r.registrations {
+		go func(reg Registration) {
+			for _, requiredService := range reg.RequiredServices {
+				p := patch{Added: []patchEntry{}, Removed: []patchEntry{}}
+
+				// signal so we can skip sending updates if not necessary
+				sendUpdate := false
+
+				for _, added := range pat.Added {
+					if added.Name == requiredService {
+						p.Added = append(p.Added, added)
+						sendUpdate = true
+					}
+				}
+
+				for _, removed := range pat.Removed {
+					if removed.Name == requiredService {
+						p.Removed = append(p.Removed, removed)
+						sendUpdate = true
+					}
+				}
+
+				if sendUpdate {
+					if err := r.sendPatch(p, reg.ServiceUpdateURL); err != nil {
+						log.Println(err)
+						return
+					}
+				}
+			}
+		}(reg)
+	}
 }
 
 func (r *registry) sendRequiredServices(reg Registration) error {

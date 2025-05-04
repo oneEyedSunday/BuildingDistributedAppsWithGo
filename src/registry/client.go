@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -56,10 +55,12 @@ func (s *serviceUpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	defer r.Body.Close()
 	var p patch
 	if err := dec.Decode(&p); err != nil {
-		log.Println(err)
+		stLog.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	stLog.Printf("Update received: %+v\n", p)
 
 	// TODO confirm this actually registers for say running multiple instances of a service
 	prov.Update(p)
