@@ -70,6 +70,8 @@ func (r *registry) notify(pat patch) {
 					}
 				}
 
+				log.Printf("notifying registration %+v of patch %+v\n, sendingUpdate: %t", reg, p, sendUpdate)
+
 				if sendUpdate {
 					if err := r.sendPatch(p, reg.ServiceUpdateURL); err != nil {
 						log.Println(err)
@@ -123,11 +125,15 @@ func (r *registry) sendPatch(p patch, url string) error {
 		return err
 	}
 
+	log.Printf("sending patch %+v to %s.\n", p, url)
 	// we dont care about response here (for now)
-	_, err = http.Post(url, "application/json", bytes.NewBuffer(d))
+	res, err := http.Post(url, "application/json", bytes.NewBuffer(d))
 	if err != nil {
+		log.Println(err)
 		return err
 	}
+
+	log.Printf("received result %d from sending patch %+v to %s\n", res.StatusCode, p, url)
 
 	return nil
 }
@@ -137,12 +143,19 @@ func (r *registry) remove(url string) error {
 	// but with containers we can seemingly use the same ports on different containers
 	// we should have an ID also, like in otoole's hraftd demo
 	// so ID + url
-	r.mu.Lock()
-	defer r.mu.Unlock()
+
 	for i := range r.registrations {
 		if r.registrations[i].ServiceURL == url {
+			r.notify(patch{
+				Added:   []patchEntry{},
+				Removed: []patchEntry{{Name: r.registrations[i].ServiceName, URL: r.registrations[i].ServiceURL}},
+			})
 			// why locking here?? and not outside???
+			// alot more code eventually happen, so for the sake of speed, do it here
+			// although, the loop target of r.registrations may be updated elsewhere
+			r.mu.Lock()
 			r.registrations = append(r.registrations[:i], r.registrations[i+1:]...)
+			r.mu.Unlock()
 			return nil
 		}
 	}

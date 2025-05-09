@@ -46,6 +46,7 @@ func RegisterService(r Registration) error {
 type serviceUpdateHandler struct{}
 
 func (s *serviceUpdateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	stLog.Printf("client received a serviceUpdate request ")
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -106,6 +107,8 @@ func (p *providers) Update(pat patch) {
 			}
 		}
 	}
+
+	stLog.Printf("finished updating providers: %+v", p.services)
 }
 
 func (p providers) get(name ServiceName) (string, error) {
