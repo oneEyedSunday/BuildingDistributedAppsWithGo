@@ -18,6 +18,8 @@ COPY --from=main-env /app/log_bin /app
 COPY --from=main-env /app/grading_bin /app
 COPY --from=main-env /app/registry_bin /app
 COPY --from=main-env /app/teacher_bin /app
+RUN mkdir /app/teacherportal
+COPY --from=main-env /app/teacherportal/*.gohtml /app/teacherportal
 EXPOSE 3000
 EXPOSE 4000
 EXPOSE 6000
