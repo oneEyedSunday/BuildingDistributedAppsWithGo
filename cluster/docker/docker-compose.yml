@@ -33,6 +33,10 @@ services:
       - SERVICE_HOSTNAME=gradingservice
     ports:
       - "6000" 
+  # TODO
+  # there is a subtle bug here, with the services not receiving updates from the shutdown (works without containerization)
+  # So i think shutting down the services via docker-compose down probably isnt sending out the updates
+  # Or i perhaps need to watch for another signal??
   registryservice:
     build:
         # dockerfile: ./Dockerfile
@@ -46,5 +50,22 @@ services:
     environment:
       REGISTRY_SERVICE_PORT: 3000
       REGISTRY_SERVICE_HOST: registryservice
+  teacherportal:
+    build:
+        # dockerfile: ./Dockerfile
+        context: ../..
+    depends_on:
+      - registryservice
+      - logservice
+      - gradingservice
+    command: ./teacher_bin
+    # profiles:
+    #   - all
+    environment:
+      - TEACHER_PORTAL_PORT=5000 # so we have unique urls for the service registry
+      - REGISTRY_SERVICE_HOST=registryservice
+      - SERVICE_HOSTNAME=teacherportal
+    ports:
+      - "5000" 
 
     
