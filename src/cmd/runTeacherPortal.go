@@ -15,7 +15,7 @@ import (
 
 func main() {
 
-	port := util.StringOr(os.Getenv("TEACHER_PORTAL_PORT"), "5000")
+	port := util.StringOr(os.Getenv("TEACHER_PORTAL_PORT"), "5500")
 	host := util.StringOr(os.Getenv("SERVICE_HOSTNAME"), "localhost")
 
 	err := teacherportal.ImportTemplates()
@@ -30,6 +30,7 @@ func main() {
 		ServiceURL:       serviceAddress,
 		RequiredServices: []registry.ServiceName{registry.LogService, registry.GradingService},
 		ServiceUpdateURL: fmt.Sprintf("%s/services", serviceAddress),
+		HeartbeatURL:     fmt.Sprintf("%s/heartbeat", serviceAddress),
 	}
 
 	ctx, err := service.Start(context.Background(), host, port, registration, teacherportal.RegisterHandlers)

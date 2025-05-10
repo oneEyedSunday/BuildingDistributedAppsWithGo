@@ -17,6 +17,7 @@ specifically designed to handle client services. So the registry service itself 
 to take advantage of that.
 */
 func main() {
+	registry.SetupRegistryService()
 	http.Handle("/services", &registry.RegistryService{})
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

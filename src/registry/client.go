@@ -14,6 +14,17 @@ import (
 
 func RegisterService(r Registration) error {
 
+	if r.HeartbeatURL != "" {
+		heartbeatURL, err := url.Parse(r.HeartbeatURL)
+		if err != nil {
+			return err
+		}
+
+		http.HandleFunc(heartbeatURL.Path, func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		})
+	}
+
 	if r.ServiceUpdateURL != "" {
 		serviceUpdateURL, err := url.Parse(r.ServiceUpdateURL)
 		if err != nil {
@@ -74,6 +85,10 @@ func ShutdownService(serviceUrl string) error {
 	}
 	req.Header.Add("Content-Type", "text/plain")
 	res, err := http.DefaultClient.Do(req)
+	if res == nil {
+		// if upstream is down, this can be nil
+		return fmt.Errorf("failed to deregister service. Registry service failed to respond")
+	}
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("failed to deregister service. Registry service responded with code %v", res.StatusCode)
 	}

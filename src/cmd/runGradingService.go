@@ -24,6 +24,7 @@ func main() {
 		ServiceURL:       serviceAddress,
 		RequiredServices: []registry.ServiceName{registry.LogService},
 		ServiceUpdateURL: fmt.Sprintf("%s/services", serviceAddress),
+		HeartbeatURL:     fmt.Sprintf("%s/heartbeat", serviceAddress),
 	}
 
 	ctx, err := service.Start(context.Background(), host, port, registration, grades.RegisterHandlers)

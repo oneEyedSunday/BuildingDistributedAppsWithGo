@@ -10,6 +10,7 @@ import (
 	"os"
 	"pluralsight-go-building-distributed-apps/pkg/util"
 	"sync"
+	"time"
 )
 
 var ServerPort string
@@ -81,6 +82,60 @@ func (r *registry) notify(pat patch) {
 			}
 		}(reg)
 	}
+}
+
+func (r *registry) heartbeat(freq time.Duration, retryDuration time.Duration) {
+	heartbeatTick := time.NewTicker(freq)
+	defer heartbeatTick.Stop()
+	for {
+		log.Printf("heartbeat cycle started, watching %d services", len(r.registrations))
+		var wg sync.WaitGroup
+		for _, reg := range r.registrations {
+			wg.Add(1)
+			log.Println("running heartbeat check for registration", reg.ServiceName)
+
+			go func(reg Registration) {
+				defer wg.Done()
+
+				success := true
+				ticker := time.NewTicker(retryDuration)
+				defer ticker.Stop()
+
+				for attempts := 0; attempts < 3; attempts++ {
+
+					res, err := http.Get(reg.HeartbeatURL)
+					if err != nil {
+						log.Println(err)
+					} else if res.StatusCode == http.StatusOK {
+						log.Printf("heartbeat checked passed for %v\n", reg.ServiceName)
+						if !success {
+							r.add(reg)
+						}
+						break
+					}
+
+					log.Printf("heartbeat check failed for %v", reg.ServiceName)
+					if success {
+						success = false
+						r.remove(reg.ServiceURL)
+					}
+
+					<-ticker.C
+				}
+			}(reg)
+		}
+
+		wg.Wait()
+		<-heartbeatTick.C
+	}
+}
+
+var once sync.Once
+
+func SetupRegistryService() {
+	once.Do(func() {
+		go reg.heartbeat(5*time.Second, 2*time.Second)
+	})
 }
 
 func (r *registry) sendRequiredServices(reg Registration) error {

@@ -26,6 +26,7 @@ func main() {
 		// yes i do, all registrations need this
 		// making a patch to skip if not provided
 		// ServiceUpdateURL: "",
+		HeartbeatURL: fmt.Sprintf("http://%s:%s/heartbeat", host, port),
 	}, log.RegisterHandlers)
 
 	if err != nil {

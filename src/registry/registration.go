@@ -7,6 +7,7 @@ type Registration struct {
 	RequiredServices []ServiceName
 	// ServiceUpdateURL is the URL the registry can communicate back to the requesting service on (to handle patchEntries for example).
 	ServiceUpdateURL string
+	HeartbeatURL     string
 }
 
 type ServiceName string
