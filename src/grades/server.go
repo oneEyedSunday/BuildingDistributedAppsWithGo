@@ -52,6 +52,11 @@ func (sh studentsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if strings.ToLower(pathSegments[3]) != "grades" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
 		sh.addGrade(w, r, id)
 	default:
 		w.WriteHeader(http.StatusNotFound)
